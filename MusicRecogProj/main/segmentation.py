@@ -21,5 +21,23 @@ windows = read_wav(filePath, timeframe)
 threshold = calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight=1)
 
 # print thresholds
-print 'Energy Threshold = ' + str(threshold[0])
-print 'SpecCT Threshold = ' + str(threshold[1])
+tE = threshold[0]
+tS = threshold[1]
+print 'Energy Threshold = ' + str(tE)
+print 'SpecCT Threshold = ' + str(tS)
+
+# recognize note
+noiseRemoved = []
+for window in windows:
+    e = short_term_energy(window)
+    s = spectral_centroid(window)
+    if e > tE and s > tS:
+        # copy
+        noiseRemoved.extend(window)
+    else:
+        for i in range(0, len(window)):
+            noiseRemoved.append(0)
+
+# plot
+plot.plot(noiseRemoved)
+plot.show()

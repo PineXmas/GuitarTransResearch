@@ -146,9 +146,9 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     plot.xlabel("Bin")
     plot.title("EnergyHistogram, window_len=" + smooth_win_len.__str__())
     plot.legend(legend)
+
     plot.subplot(212)
     plot.plot(gramSpectral)
-    plot.hold(True)
     legend = ['original']
     if isSmooth:
         plot.plot(gramSpectralSmooth)
@@ -157,6 +157,7 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     plot.xlabel("Bin")
     plot.title("SpectralCentroidHistogram, window_len=" + smooth_win_len.__str__())
     plot.legend(legend)
+
     plot.show()
 
     # retrieve 2 first maximas
