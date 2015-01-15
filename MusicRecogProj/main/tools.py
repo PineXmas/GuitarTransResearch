@@ -88,7 +88,8 @@ from extract_features import *
 def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     '''
     calculate 2 threshold values
-    :return: list [t1, t2]
+
+    :return: list [t1, t2, listEnergy, listSpectral]
     '''
 
     # histogram: array of floats
@@ -105,15 +106,19 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
         listSpectral.append(Si)
 
     # sort list of values
+    copyListEnergy = []
+    copyListSpectral = []
+    copyListEnergy.extend(listEnergy)
+    copyListSpectral.extend(listSpectral)
     listEnergy.sort()
     listSpectral.sort()
 
     # create histograms
     print 'Generating histograms...'
-    binStep = (listEnergy[len(listEnergy)-1] - listEnergy[0]) / nBins
-    gramEnergy = gen_histogram(listEnergy, binStep)
-    binStep = (listSpectral[len(listSpectral)-1] - listSpectral[0]) / nBins
-    gramSpectral = gen_histogram(listSpectral, binStep)
+    binStepE = (listEnergy[len(listEnergy)-1] - listEnergy[0]) / nBins
+    gramEnergy = gen_histogram(listEnergy, binStepE)
+    binStepS = (listSpectral[len(listSpectral)-1] - listSpectral[0]) / nBins
+    gramSpectral = gen_histogram(listSpectral, binStepS)
 
     # (smooth if need) find local maximas
     # ENERGY
@@ -161,10 +166,14 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     plot.show()
 
     # retrieve 2 first maximas
-    e1 = gramEnergySmooth[resultE[0][0]]
-    e2 = gramEnergySmooth[resultE[0][1]]
-    s1 = gramSpectralSmooth[resultS[0][0]]
-    s2 = gramSpectralSmooth[resultS[0][1]]
+    iE1 = resultE[0][0]  # bin index
+    iE2 = resultE[0][1]
+    e1 = listEnergy[0] + binStepE * (iE1 + 1)  # actual value (max of bin)
+    e2 = listEnergy[0] + binStepE * (iE2 + 1)
+    iS1 = resultS[0][0]  # bin index
+    iS2 = resultS[0][1]
+    s1 = listSpectral[0] + binStepS * (iS1 + 1)  # actual value (max of bin)
+    s2 = listSpectral[0] + binStepS * (iS2 + 1)
 
     # print
     print 'Done.'
@@ -178,4 +187,4 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     # calculate threshold: spectral centroid
     s = (thresWeight * s1 + s2) / (thresWeight + 1)
 
-    return [e, s]
+    return [e, s, copyListEnergy, copyListSpectral]
