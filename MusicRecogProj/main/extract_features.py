@@ -5,9 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def read_wav(filePath, windowTime):
+    '''
+
+    read a music file & return
+
+    :param filePath:
+    :param windowTime:
+    :return: list (windows, wavData)
+    '''
     wavData = AudioFile.open(filePath)
     windows = wavData.frames(wavData.sampleRate*windowTime/1000)
-    return windows
+    return [windows, wavData]
 
 
 def spectral_centroid(window):
