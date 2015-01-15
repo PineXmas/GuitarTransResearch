@@ -78,14 +78,14 @@ def smooth(x, window_len=11, window='hanning'):
     y = numpy.convolve(w / w.sum(), s, mode='valid')
     return y
 
-from ShortTermEnergy import short_term_energy
 import numpy
 from scipy.signal import argrelmax
 import scipy.io.wavfile as wav
 import matplotlib.pyplot as plot
+from extract_features import *
 
 
-def calculate_threshold(N, x, nBins, isSmooth, smooth_win_len, thresWeight):
+def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     '''
     calculate 2 threshold values
     :return: list [t1, t2]
@@ -97,24 +97,25 @@ def calculate_threshold(N, x, nBins, isSmooth, smooth_win_len, thresWeight):
 
     # gather values for histograms
     print 'Calculating feature values...'
-    n = N
-    while n <= len(x):
-        Xi = short_term_energy(x, n, N)
+    for window in windows:
+        Ei = short_term_energy(window)
+        Si = spectral_centroid(window)
         # Yi = spectral_centroid()
-        listEnergy.append(Xi)
-        n += N
+        listEnergy.append(Ei)
+        listSpectral.append(Si)
 
     # sort list of values
     listEnergy.sort()
-    # listSpectral.sort()
+    listSpectral.sort()
 
     # create histograms
     print 'Generating histograms...'
     binStep = (listEnergy[len(listEnergy)-1] - listEnergy[0]) / nBins
     gramEnergy = gen_histogram(listEnergy, binStep)
-    # gramSpectral = gen_histogram(listSpectral, binStep)
+    gramSpectral = gen_histogram(listSpectral, binStep)
 
     # (smooth if need) find local maximas
+    # ENERGY
     print 'Smooth & Find local maximas...'
     gramEnergy = numpy.asarray(gramEnergy) # convert to ndarray
     method = 'flat'
@@ -122,9 +123,18 @@ def calculate_threshold(N, x, nBins, isSmooth, smooth_win_len, thresWeight):
         gramEnergySmooth = smooth(gramEnergy, smooth_win_len, method)
     else:
         gramEnergySmooth = gramEnergy
-    result = argrelmax(gramEnergySmooth)
+    resultE = argrelmax(gramEnergySmooth)
+    # SPECTRAL
+    gramSpectral = numpy.asarray(gramSpectral) # convert to ndarray
+    method = 'flat'
+    if isSmooth:
+        gramSpectralSmooth = smooth(gramSpectral, smooth_win_len, method)
+    else:
+        gramSpectralSmooth = gramSpectral
+    resultS = argrelmax(gramEnergySmooth)
 
     # plot
+    plot.subplot(211)
     plot.plot(gramEnergy)
     plot.hold(True)
     legend = ['original']
@@ -133,23 +143,37 @@ def calculate_threshold(N, x, nBins, isSmooth, smooth_win_len, thresWeight):
         legend.append('smoothed')
     plot.ylabel("Frequency")
     plot.xlabel("Bin")
-    plot.title("Histogram, window_len=" + smooth_win_len.__str__())
+    plot.title("EnergyHistogram, window_len=" + smooth_win_len.__str__())
+    plot.legend(legend)
+    plot.subplot(212)
+    plot.plot(gramSpectral)
+    plot.hold(True)
+    legend = ['original']
+    if isSmooth:
+        plot.plot(gramSpectralSmooth)
+        legend.append('smoothed')
+    plot.ylabel("Frequency")
+    plot.xlabel("Bin")
+    plot.title("SpectralCentroidHistogram, window_len=" + smooth_win_len.__str__())
     plot.legend(legend)
     plot.show()
 
     # retrieve 2 first maximas
-    e1 = gramEnergySmooth[result[0][0]]
-    e2 = gramEnergySmooth[result[0][1]]
+    e1 = gramEnergySmooth[resultE[0][0]]
+    e2 = gramEnergySmooth[resultE[0][1]]
+    s1 = gramEnergySmooth[resultS[0][0]]
+    s2 = gramEnergySmooth[resultS[0][1]]
 
     # print
     print 'Done.'
-    print 'STE: 2 first maximas: ' + str(e1) + ', ' + str(e2)
+    print 'Energy: 2 first maximas: ' + str(e1) + ', ' + str(e2)
+    print 'SpecCT: 2 first maximas: ' + str(s1) + ', ' + str(s2)
 
     # calculate threshold: short term energy
     thresWeight = float(thresWeight)
     e = (thresWeight * e1 + e2) / (thresWeight + 1)
 
     # calculate threshold: spectral centroid
-    s = 0
+    s = (thresWeight * s1 + s2) / (thresWeight + 1)
 
     return [e, s]
