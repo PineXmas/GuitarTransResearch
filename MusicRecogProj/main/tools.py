@@ -77,3 +77,79 @@ def smooth(x, window_len=11, window='hanning'):
 
     y = numpy.convolve(w / w.sum(), s, mode='valid')
     return y
+
+from ShortTermEnergy import short_term_energy
+import numpy
+from scipy.signal import argrelmax
+import scipy.io.wavfile as wav
+import matplotlib.pyplot as plot
+
+
+def calculate_threshold(N, x, nBins, isSmooth, smooth_win_len, thresWeight):
+    '''
+    calculate 2 threshold values
+    :return: list [t1, t2]
+    '''
+
+    # histogram: array of floats
+    listEnergy = []
+    listSpectral = []
+
+    # gather values for histograms
+    print 'Calculating feature values...'
+    n = N
+    while n <= len(x):
+        Xi = short_term_energy(x, n, N)
+        # Yi = spectral_centroid()
+        listEnergy.append(Xi)
+        n += N
+
+    # sort list of values
+    listEnergy.sort()
+    # listSpectral.sort()
+
+    # create histograms
+    print 'Generating histograms...'
+    binStep = (listEnergy[len(listEnergy)-1] - listEnergy[0]) / nBins
+    gramEnergy = gen_histogram(listEnergy, binStep)
+    # gramSpectral = gen_histogram(listSpectral, binStep)
+
+    # (smooth if need) find local maximas
+    print 'Smooth & Find local maximas...'
+    gramEnergy = numpy.asarray(gramEnergy) # convert to ndarray
+    method = 'flat'
+    if isSmooth:
+        gramEnergySmooth = smooth(gramEnergy, smooth_win_len, method)
+    else:
+        gramEnergySmooth = gramEnergy
+    result = argrelmax(gramEnergySmooth)
+
+    # plot
+    plot.plot(gramEnergy)
+    plot.hold(True)
+    legend = ['original']
+    if isSmooth:
+        plot.plot(gramEnergySmooth)
+        legend.append('smoothed')
+    plot.ylabel("Frequency")
+    plot.xlabel("Bin")
+    plot.title("Histogram, window_len=" + smooth_win_len.__str__())
+    plot.legend(legend)
+    plot.show()
+
+    # retrieve 2 first maximas
+    e1 = gramEnergySmooth[result[0][0]]
+    e2 = gramEnergySmooth[result[0][1]]
+
+    # print
+    print 'Done.'
+    print 'STE: 2 first maximas: ' + str(e1) + ', ' + str(e2)
+
+    # calculate threshold: short term energy
+    thresWeight = float(thresWeight)
+    e = (thresWeight * e1 + e2) / (thresWeight + 1)
+
+    # calculate threshold: spectral centroid
+    s = 0
+
+    return [e, s]
