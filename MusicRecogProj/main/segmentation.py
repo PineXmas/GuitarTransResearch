@@ -12,10 +12,10 @@ timeframe = 100  # 10ms
 isSmooth = True # smooth input before finding maximas or not
 nBins = 1000 # number of total bins in histogram
 smooth_win_len = 7
-songName = '02.Happy Birthday.wav'
+filePath = '02.Happy Birthday.wav'
 
 # read audio samples
-input_data = wav.read(songName)
+input_data = wav.read(filePath)
 audio = input_data[1]
 x = audio[:, 0] # get channel 0 only
 
