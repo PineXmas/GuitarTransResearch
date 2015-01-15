@@ -15,7 +15,7 @@ nBins = 1000 # number of total bins in histogram
 smooth_win_len = 7
 thresWeight = 1.5
 path = 'input/'
-fileName = '08.jb.wav'
+fileName = 'talk.wav'
 filePath = path + fileName
 
 # read audio & split to windows
