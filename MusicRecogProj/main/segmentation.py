@@ -8,11 +8,11 @@ from extract_features import *
 
 
 # settings
-timeframe = 100  # 10ms
+timeframe = 10  # 10ms
 isSmooth = True # smooth input before finding maximas or not
 nBins = 1000 # number of total bins in histogram
 smooth_win_len = 7
-filePath = '02.Happy Birthday.wav'
+filePath = 'input/02.hb.wav'
 
 # read audio & split to windows
 windows = read_wav(filePath, timeframe)

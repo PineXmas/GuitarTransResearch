@@ -112,6 +112,7 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     print 'Generating histograms...'
     binStep = (listEnergy[len(listEnergy)-1] - listEnergy[0]) / nBins
     gramEnergy = gen_histogram(listEnergy, binStep)
+    binStep = (listSpectral[len(listSpectral)-1] - listSpectral[0]) / nBins
     gramSpectral = gen_histogram(listSpectral, binStep)
 
     # (smooth if need) find local maximas
@@ -131,7 +132,7 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
         gramSpectralSmooth = smooth(gramSpectral, smooth_win_len, method)
     else:
         gramSpectralSmooth = gramSpectral
-    resultS = argrelmax(gramEnergySmooth)
+    resultS = argrelmax(gramSpectralSmooth)
 
     # plot
     plot.subplot(211)
@@ -161,8 +162,8 @@ def calculate_threshold(windows, nBins, isSmooth, smooth_win_len, thresWeight):
     # retrieve 2 first maximas
     e1 = gramEnergySmooth[resultE[0][0]]
     e2 = gramEnergySmooth[resultE[0][1]]
-    s1 = gramEnergySmooth[resultS[0][0]]
-    s2 = gramEnergySmooth[resultS[0][1]]
+    s1 = gramSpectralSmooth[resultS[0][0]]
+    s2 = gramSpectralSmooth[resultS[0][1]]
 
     # print
     print 'Done.'
