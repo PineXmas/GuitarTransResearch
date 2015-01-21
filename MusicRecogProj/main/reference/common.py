@@ -3,8 +3,7 @@ __author__ = 'nghia'
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-from scikits.audiolab import Sndfile
+from scikits.audiolab import sndfile
 from numpy import array_equal, polyfit, sqrt, mean, absolute, log10
 from scipy.stats import gmean
 
@@ -14,7 +13,7 @@ def load(filename):
     Can be any format that libsndfile supports, like .wav, .flac, etc.
 
     """
-    wave_file = Sndfile(filename, 'r')
+    wave_file = sndfile(filename, 'r')
     signal = wave_file.read_frames(wave_file.nframes)
     channels = wave_file.channels
     sample_rate = wave_file.samplerate

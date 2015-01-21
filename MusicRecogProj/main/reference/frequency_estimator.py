@@ -7,7 +7,7 @@ from common import parabolic as parabolic
 from numpy.fft import rfft
 from numpy import argmax, mean, diff, log, copy, arange
 from matplotlib.mlab import find
-from scipy.signal import fftconvolve, kaiser, decimate
+from scipy.signal import fftconvolve, kaiser, decimate, hamming
 from time import time
 
 
@@ -100,16 +100,19 @@ def freq_from_hps(signal, fs):
     signal -= mean(signal) # Remove DC offset
     
     # Compute Fourier transform of windowed signal
-    windowed = signal * kaiser(N, 100)
+    windowed = signal * hamming(N)
     
     # Get spectrum
     X = log(abs(rfft(windowed)))
     
     # Downsample sum logs of spectra instead of multiplying
     hps = copy(X)
-    for h in arange(2, 9): # TODO: choose a smarter upper limit
-        dec = decimate(X, h)
-        hps[:len(dec)] += dec
+    # for h in range(2, 3): # TODO: choose a smarter upper limit
+    #     dec = decimate(X, h)
+    #     hps[:len(dec)] += dec
+
+    dec = decimate(X, 2)
+    hps[:len(dec)] += dec
     
     # Find the peak and interpolate to get a more accurate peak
     i_peak = argmax(hps[:len(dec)])
@@ -119,29 +122,30 @@ def freq_from_hps(signal, fs):
     return fs * i_interp / N # Hz
 
 
-if __name__ == '__main__':
-    try:
-        import sys
-        def freq_wrapper(signal, fs):
-            freq = freq_from_fft(signal, fs)
-            print '%f Hz' % freq
-        
-        files = sys.argv[1:]
-        if files:
-            for filename in files:
-                try:
-                    start_time = time()
-                    analyze_channels(filename, freq_wrapper)
-                    print '\nTime elapsed: %.3f s\n' % (time() - start_time)
-                    
-                except IOError:
-                    print 'Couldn\'t analyze "' + filename + '"\n'
-                print ''
-        else:
-            sys.exit("You must provide at least one file to analyze")
-    except BaseException as e:
-        print('Error:')
-        print(e)
-        raise
-    finally:
-        raw_input('(Press <Enter> to close)') # Otherwise Windows closes the window too quickly to read
+
+# if __name__ == '__main__':
+#     try:
+#         import sys
+#         def freq_wrapper(signal, fs):
+#             freq = freq_from_fft(signal, fs)
+#             print '%f Hz' % freq
+#
+#         files = sys.argv[1:]
+#         if files:
+#             for filename in files:
+#                 try:
+#                     start_time = time()
+#                     analyze_channels(filename, freq_wrapper)
+#                     print '\nTime elapsed: %.3f s\n' % (time() - start_time)
+#
+#                 except IOError:
+#                     print 'Couldn\'t analyze "' + filename + '"\n'
+#                 print ''
+#         else:
+#             sys.exit("You must provide at least one file to analyze")
+#     except BaseException as e:
+#         print('Error:')
+#         print(e)
+#         raise
+#     finally:
+#         raw_input('(Press <Enter> to close)') # Otherwise Windows closes the window too quickly to read

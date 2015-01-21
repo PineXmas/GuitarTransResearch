@@ -15,7 +15,7 @@ nBins = 1000 # number of total bins in histogram
 smooth_win_len = 7
 thresWeight = 1.5
 path = 'input/'
-fileName = 'talk.wav'
+fileName = '02.hb.wav'
 filePath = path + fileName
 
 # read audio & split to windows
@@ -47,19 +47,21 @@ for i in range(0, len(listE)-1):
         for j in range(0, len(windows[i])-1):
             noiseRemoved.append(0)
 
-# plot
-plot.subplot(311)
-plot.plot(listE)
-plot.title('Energy')
-plot.subplot(312)
-plot.plot(listS)
-plot.title('Spectral')
-plot.subplot(313)
-plot.plot(noiseRemoved)
-plot.title('Noise removed')
-plot.show()
+
 
 # create wav file
 noNoise = np.asarray(noNoise)
 scaled = np.int16(noNoise/np.max(np.abs(noNoise)) * 32767)  # 32767 means 16 signed bit
-write(path + 'removed_' + fileName, readAudio[1].sampleRate, scaled)
+# write(path + 'removed_' + fileName, readAudio[1].sampleRate, scaled)
+
+# plot
+plot.subplot(211)
+plot.plot(readAudio[1])
+plot.title('Original')
+plot.subplot(212)
+plot.plot(scaled)
+plot.title('Silence Removed')
+# plot.subplot(313)
+# plot.plot(scaled)
+# plot.title('Noise removed')
+plot.show()
